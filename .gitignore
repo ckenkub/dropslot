@@ -1,0 +1,27 @@
+# Maven / Java
+/target/
+/**/target/
+*.log
+*.class
+
+# IDEs
+/.idea/
+/.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+*.env
+secrets/
+credentials/
+
+# Docker
+docker-compose.override.yml
+**/data/
+
+# Other
+node_modules/

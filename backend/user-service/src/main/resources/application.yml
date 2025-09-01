@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/user_db
+    username: user
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.lob.non_contextual_creation: true
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+security:
+  jwt:
+    # Provide a base64-encoded signing secret via the environment variable SECURITY_JWT_SECRET
+    # In production set SECURITY_JWT_SECRET and do NOT commit secrets to source control.
+    secret: ${SECURITY_JWT_SECRET:dGhpc2lzYXZlcnlsb25nYmFzZTY0c2VjcmV0c3RyaW5nZm9yZGV2ZWxvcG1lbnQ=}
+    ttlSeconds: ${SECURITY_JWT_TTL_SECONDS:3600}      # 1 hour for access tokens
+    refreshTtlSeconds: ${SECURITY_JWT_REFRESH_TTL_SECONDS:604800}  # 7 days for refresh tokens
+
+cors:
+  # Comma-separated list of allowed origins; default is '*' for development only
+  allowed-origins: ${SECURITY_CORS_ALLOWED_ORIGINS:*}
+
+server:
+  port: 8081

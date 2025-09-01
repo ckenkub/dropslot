@@ -1,0 +1,193 @@
+@startuml
+!theme plain
+hide circle
+skinparam linetype ortho
+
+entity users {
+  *id: UUID <<PK>>
+  --
+  email: text <<UNIQUE>>
+  password_hash: text
+  name: text
+  status: text
+  email_verified_at: timestamp?
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity roles {
+  *id: UUID <<PK>>
+  --
+  code: text <<UNIQUE>>
+  name: text
+}
+
+entity user_roles {
+  *user_id: UUID <<FK>>
+  *role_id: UUID <<FK>>
+}
+
+entity stores {
+  *id: UUID <<PK>>
+  --
+  name: text
+  slug: text <<UNIQUE>>
+  tenant_key: text
+  logo_url: text
+  created_by: UUID
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity branches {
+  *id: UUID <<PK>>
+  --
+  store_id: UUID <<FK>>
+  name: text
+  address: text
+  lat: numeric?
+  lng: numeric?
+  phone: text?
+  opening_hours: json?
+}
+
+entity products {
+  *id: UUID <<PK>>
+  --
+  store_id: UUID <<FK>>
+  name: text
+  sku: text
+  description: text?
+  images: json?
+  price_cents: int
+  currency: text
+  is_active: bool
+}
+
+entity drops {
+  *id: UUID <<PK>>
+  --
+  store_id: UUID <<FK>>
+  product_id: UUID <<FK>>
+  name: text
+  starts_at: timestamp
+  ends_at: timestamp
+  reservation_rule: json?
+  status: text
+}
+
+entity slots {
+  *id: UUID <<PK>>
+  --
+  drop_id: UUID <<FK>>
+  start_time: timestamp
+  end_time: timestamp
+  capacity_total: int
+  capacity_reserved: int
+  capacity_waitlist: int
+}
+
+entity reservations {
+  *id: UUID <<PK>>
+  --
+  slot_id: UUID <<FK>>
+  user_id: UUID <<FK>>
+  state: text
+  qr_code_url: text?
+  customer_note: text?
+  created_at: timestamp
+  confirmed_at: timestamp?
+  cancelled_at: timestamp?
+  checked_in_at: timestamp?
+}
+
+entity waitlist {
+  *id: UUID <<PK>>
+  --
+  slot_id: UUID <<FK>>
+  user_id: UUID <<FK>>
+  position: int
+  state: text
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity payments {
+  *id: UUID <<PK>>
+  --
+  reservation_id: UUID <<FK UNIQUE>>
+  provider: text
+  provider_intent_id: text
+  amount_cents: int
+  currency: text
+  status: text
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity notifications {
+  *id: UUID <<PK>>
+  --
+  user_id: UUID <<FK>>
+  channel: text
+  template: text
+  payload: json?
+  status: text
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity webhook_endpoints {
+  *id: UUID <<PK>>
+  --
+  store_id: UUID <<FK>>
+  url: text
+  secret: text
+  active: bool
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity webhook_events {
+  *id: UUID <<PK>>
+  --
+  endpoint_id: UUID <<FK>>
+  type: text
+  payload: json?
+  delivery_status: text
+  retry_count: int
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+entity audit_logs {
+  *id: UUID <<PK>>
+  --
+  actor_user_id: UUID <<FK>>
+  action: text
+  entity: text
+  entity_id: text
+  before: json?
+  after: json?
+  ip: text?
+  ua: text?
+  created_at: timestamp
+}
+
+users ||--o{ user_roles : has
+roles ||--o{ user_roles : has
+stores ||--o{ branches : has
+stores ||--o{ products : has
+stores ||--o{ drops : has
+products ||--o{ drops : has
+drops ||--o{ slots : has
+slots ||--o{ reservations : has
+users ||--o{ reservations : makes
+slots ||--o{ waitlist : has
+users ||--o{ waitlist : joins
+reservations ||--|| payments : billed_by
+users ||--o{ notifications : receives
+stores ||--o{ webhook_endpoints : owns
+webhook_endpoints ||--o{ webhook_events : emits
+users ||--o{ audit_logs : actor
+@enduml

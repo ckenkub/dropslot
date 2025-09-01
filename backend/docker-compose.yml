@@ -1,0 +1,29 @@
+version: '3.9'
+services:
+  postgres-user:
+    image: postgres:16-alpine
+    container_name: ds-postgres-user
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_data:/var/lib/postgresql/data
+
+  postgres-store:
+    image: postgres:16-alpine
+    container_name: ds-postgres-store
+    environment:
+      POSTGRES_DB: store_db
+      POSTGRES_USER: store
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - store_data:/var/lib/postgresql/data
+
+volumes:
+  user_data: {}
+  store_data: {}
