@@ -12,8 +12,7 @@ jobs:
     services:
       docker:
         image: docker:24-dind
-        privileged: true
-        options: --init
+        options: --init --privileged
 
     steps:
       - name: Checkout
