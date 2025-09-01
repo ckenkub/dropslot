@@ -7,6 +7,7 @@ set -euo pipefail
 AUTH_URL=${AUTH_URL:-http://localhost:8081}
 EMAIL=${EMAIL:-test@example.com}
 PASSWORD=${PASSWORD:-password123}
+NAME=${NAME:-"Test User"}
 DB_CONTAINER=${DB_CONTAINER:-ds-postgres-user}
 DB_USER=${DB_USER:-user}
 DB_NAME=${DB_NAME:-user_db}
@@ -28,6 +29,25 @@ if [ "$CLEAN_REFRESH_TOKENS" = "true" ]; then
   else
     echo "Warning: failed to clean refresh_tokens (continuing)" >&2
   fi
+fi
+
+# Ensure test user exists (idempotent)
+echo -e "\n[0.5/4] Registering user $EMAIL (idempotent)"
+REG_REQ=$(jq -n --arg e "$EMAIL" --arg p "$PASSWORD" --arg n "$NAME" '{email:$e,password:$p,name:$n}')
+REG_RESP=$(curl -sS -w "\n%{http_code}" -X POST "$AUTH_URL/auth/register" -H 'Content-Type: application/json' -d "$REG_REQ" || true)
+REG_HTTP=$(echo "$REG_RESP" | tail -n1)
+REG_BODY=$(echo "$REG_RESP" | sed '$d' || true)
+if [ -z "$REG_HTTP" ]; then
+  echo "Register request failed to connect" >&2
+  echo "$REG_BODY" || true
+  exit 1
+fi
+if [ "$REG_HTTP" -eq 200 ] || echo "$REG_BODY" | grep -qi "already registered"; then
+  echo "User exists or registered successfully (HTTP $REG_HTTP)"
+else
+  echo "Register failed (HTTP $REG_HTTP)" >&2
+  echo "$REG_BODY" | jq . || echo "$REG_BODY"
+  exit 1
 fi
 
 # Login

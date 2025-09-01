@@ -12,8 +12,7 @@ jobs:
     services:
       docker:
         image: docker:24-dind
-        privileged: true
-        options: --init
+        options: --init --privileged
 
     steps:
       - name: Checkout
@@ -31,7 +30,7 @@ jobs:
       - name: Start docker-compose
         run: |
           cd backend
-          docker-compose up -d
+          docker compose up -d
 
       - name: Wait for Postgres (user)
         run: |
@@ -62,9 +61,24 @@ jobs:
           chmod +x backend/scripts/e2e-smoke.sh
           backend/scripts/e2e-smoke.sh
 
+      - name: Start store-service jar in background
+        run: |
+          cd backend/store-service
+          nohup java -jar target/store-service-0.1.0-SNAPSHOT.jar > /tmp/store-service.log 2>&1 &
+          sleep 5
+
+      - name: Wait for store-service port
+        run: |
+          backend/scripts/ci-wait-for.sh localhost 8082 30
+
+      - name: Run store-service smoke script
+        run: |
+          chmod +x backend/scripts/e2e-store-smoke.sh
+          backend/scripts/e2e-store-smoke.sh
+
       - name: Tear down docker-compose
         if: always()
         run: |
           cd backend
-          docker-compose down -v
+          docker compose down -v
 
