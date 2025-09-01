@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
+
+    // In-memory token stores for scaffolding (not for production)
+    private final ConcurrentMap<String,String> verificationTokens = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String,String> passwordResetTokens = new ConcurrentHashMap<>();
 
     @Transactional
     public UserProfileDto register(AuthDtos.RegisterRequest request) {
@@ -82,6 +88,46 @@ public class AuthService {
                 user.getName(),
                 user.getRoles().stream().map(Role::getCode).collect(Collectors.toSet())
         );
+    }
+
+    // --- Email verification & password reset (scaffold) ---
+    public void sendVerificationEmail(String email) {
+        // generate a simple token and store it in-memory
+        String token = UUID.randomUUID().toString().substring(0,8);
+        verificationTokens.put(email.toLowerCase(), token);
+        // In a real implementation we'd enqueue/send email. For CI we just log.
+        System.out.println("[scaffold] sendVerificationEmail: " + email + " token=" + token);
+    }
+
+    public void verifyEmail(String email, String code) {
+        String stored = verificationTokens.get(email.toLowerCase());
+        if (stored == null || !stored.equals(code)) {
+            throw new IllegalArgumentException("Invalid verification code");
+        }
+        // mark verified: here we can update user status if present
+        userRepository.findByEmail(email).ifPresent(u -> {
+            u.setStatus("ACTIVE");
+            userRepository.save(u);
+        });
+        verificationTokens.remove(email.toLowerCase());
+    }
+
+    public void requestPasswordReset(String email) {
+        String token = UUID.randomUUID().toString().substring(0,8);
+        passwordResetTokens.put(email.toLowerCase(), token);
+        System.out.println("[scaffold] requestPasswordReset: " + email + " token=" + token);
+    }
+
+    public void performPasswordReset(String email, String token, String newPassword) {
+        String stored = passwordResetTokens.get(email.toLowerCase());
+        if (stored == null || !stored.equals(token)) {
+            throw new IllegalArgumentException("Invalid password reset token");
+        }
+        userRepository.findByEmail(email).ifPresent(u -> {
+            u.setPasswordHash(passwordEncoder.encode(newPassword));
+            userRepository.save(u);
+        });
+        passwordResetTokens.remove(email.toLowerCase());
     }
 
     @Transactional
