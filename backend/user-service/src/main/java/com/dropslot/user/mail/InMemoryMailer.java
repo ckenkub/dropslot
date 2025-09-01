@@ -20,7 +20,8 @@ public class InMemoryMailer implements Mailer {
         // than splitting on whitespace and stripping punctuation.
         String token = null;
         try {
-            Pattern p = Pattern.compile("\\b([A-Za-z0-9-]{6,})\\b");
+            // tokens are generated as UUID.substring(0,8) (hex digits) so match 8 hex chars
+            Pattern p = Pattern.compile("\\b([A-Fa-f0-9]{8})\\b");
             Matcher m = p.matcher(body);
             if (m.find()) {
                 token = m.group(1);
