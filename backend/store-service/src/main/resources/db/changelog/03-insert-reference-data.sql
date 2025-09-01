@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset store:03
+--changeset ckenkub:03
 -- Insert idempotent mock data for stores and branches
 INSERT INTO stores (id, name, slug, tenant_key, logo_url, created_by)
 VALUES (uuid_generate_v4(), 'Demo Store', 'demo-store', 'demo', NULL, NULL)

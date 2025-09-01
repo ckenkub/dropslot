@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset store:01
+--changeset ckenkub:01
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS stores (

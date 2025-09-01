@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset dropslot:create-refresh-tokens
+--changeset ckenkub:04
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
