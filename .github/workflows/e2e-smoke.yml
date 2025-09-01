@@ -30,7 +30,7 @@ jobs:
       - name: Start docker-compose
         run: |
           cd backend
-          docker-compose up -d
+          docker compose up -d
 
       - name: Wait for Postgres (user)
         run: |
@@ -80,5 +80,5 @@ jobs:
         if: always()
         run: |
           cd backend
-          docker-compose down -v
+          docker compose down -v
 
