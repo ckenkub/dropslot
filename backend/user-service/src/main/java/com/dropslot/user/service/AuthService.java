@@ -12,12 +12,15 @@ import com.dropslot.user.repo.RoleRepository;
 import com.dropslot.user.repo.UserRepository;
 import com.dropslot.user.repo.VerificationTokenRepository;
 import com.dropslot.user.security.JwtService;
+import com.dropslot.user.util.LogUtils;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
@@ -36,6 +40,9 @@ public class AuthService {
   @Transactional
   public UserProfileDto register(AuthDtos.RegisterRequest request) {
     if (userRepository.existsByEmail(request.email())) {
+      log.info(
+          "Registration failed - email already registered: {}",
+          LogUtils.maskEmail(request.email()));
       throw new IllegalArgumentException("Email already registered");
     }
     Role customerRole =
@@ -55,6 +62,7 @@ public class AuthService {
             .build();
     user.getRoles().add(customerRole);
     userRepository.save(user);
+    log.info("User registered id={} email={}", user.getId(), LogUtils.maskEmail(user.getEmail()));
     return toProfile(user);
   }
 
@@ -64,6 +72,7 @@ public class AuthService {
         userRepository
             .findByEmail(request.email())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+    log.debug("Loaded user id={} for login", user.getId());
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
       throw new IllegalArgumentException("Invalid credentials");
     }
@@ -87,9 +96,14 @@ public class AuthService {
             .revoked(false)
             .build();
     refreshTokenRepository.save(tokenEntity);
-
-    return new AuthDtos.TokenResponse(
-        accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
+    LogUtils.putUserContext(user.getId().toString());
+    try {
+      log.info("Login successful jti={}", jti);
+      return new AuthDtos.TokenResponse(
+          accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
+    } finally {
+      LogUtils.removeUserContext();
+    }
   }
 
   public UserProfileDto toProfile(User user) {
@@ -103,6 +117,7 @@ public class AuthService {
   // --- Email verification & password reset (scaffold) ---
   @Transactional
   public void sendVerificationEmail(String email) {
+    log.info("Send verification email requested for email={}", LogUtils.maskEmail(email));
     String token = UUID.randomUUID().toString().substring(0, 8);
     VerificationToken vt =
         VerificationToken.builder()
@@ -116,12 +131,15 @@ public class AuthService {
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
     verificationTokenRepository.save(vt);
     mailer.send(email, "Verify your account", "Your verification code: " + token);
+    log.info("Verification token created and emailed to={}", LogUtils.maskEmail(email));
   }
 
   @Transactional
   public void verifyEmail(String email, String code) {
+    log.info("Verify email attempt for email={}", LogUtils.maskEmail(email));
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "VERIFY");
     if (opt.isEmpty()) {
+      log.info("Verification failed (no token) for email={}", LogUtils.maskEmail(email));
       throw new IllegalArgumentException("Invalid verification code");
     }
     var vt = opt.get();
@@ -131,6 +149,7 @@ public class AuthService {
       throw new IllegalArgumentException("Verification code expired");
     }
     if (!vt.getToken().equals(code)) {
+      log.info("Verification failed (invalid code) for email={}", LogUtils.maskEmail(email));
       throw new IllegalArgumentException("Invalid verification code");
     }
     userRepository
@@ -141,10 +160,12 @@ public class AuthService {
               userRepository.save(u);
             });
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
+    log.info("Email verified and account activated for email={}", LogUtils.maskEmail(email));
   }
 
   @Transactional
   public void requestPasswordReset(String email) {
+    log.info("Password reset requested for email={}", LogUtils.maskEmail(email));
     String token = UUID.randomUUID().toString().substring(0, 8);
     VerificationToken vt =
         VerificationToken.builder()
@@ -158,12 +179,15 @@ public class AuthService {
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "RESET");
     verificationTokenRepository.save(vt);
     mailer.send(email, "Password reset", "Your password reset token: " + token);
+    log.info("Password reset token created and emailed to={}", LogUtils.maskEmail(email));
   }
 
   @Transactional
   public void performPasswordReset(String email, String token, String newPassword) {
+    log.info("Perform password reset attempt for email={}", LogUtils.maskEmail(email));
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "RESET");
     if (opt.isEmpty()) {
+      log.info("Password reset failed (no token) for email={}", LogUtils.maskEmail(email));
       throw new IllegalArgumentException("Invalid password reset token");
     }
     var vt = opt.get();
@@ -172,6 +196,7 @@ public class AuthService {
       throw new IllegalArgumentException("Password reset token expired");
     }
     if (!vt.getToken().equals(token)) {
+      log.info("Password reset failed (invalid token) for email={}", LogUtils.maskEmail(email));
       throw new IllegalArgumentException("Invalid password reset token");
     }
     userRepository
@@ -182,11 +207,13 @@ public class AuthService {
               userRepository.save(u);
             });
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "RESET");
+    log.info("Password has been reset for email={}", LogUtils.maskEmail(email));
   }
 
   @Transactional
   public AuthDtos.TokenResponse refreshAccessToken(String refreshToken) {
     if (!jwtService.isTokenValid(refreshToken)) {
+      log.info("Refresh token invalid or malformed");
       throw new IllegalArgumentException("Invalid refresh token");
     }
     String jti = jwtService.extractJti(refreshToken);
@@ -198,6 +225,7 @@ public class AuthService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Refresh token not found or already used"));
     if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
+      log.info("Refresh token revoked/expired jti={}", jti);
       throw new IllegalArgumentException("Refresh token expired or revoked");
     }
 
@@ -228,8 +256,13 @@ public class AuthService {
             .revoked(false)
             .build();
     refreshTokenRepository.save(newEntity);
-
-    return new AuthDtos.TokenResponse(
-        accessToken, newRefresh, "Bearer", jwtService.getTtlSeconds());
+    LogUtils.putUserContext(user.getId().toString());
+    try {
+      log.info("Refresh token rotated newJti={}", newJti);
+      return new AuthDtos.TokenResponse(
+          accessToken, newRefresh, "Bearer", jwtService.getTtlSeconds());
+    } finally {
+      LogUtils.removeUserContext();
+    }
   }
 }
