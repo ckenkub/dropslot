@@ -121,7 +121,16 @@ public class AuthService {
   @Transactional
   public void verifyEmail(String email, String code) {
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "VERIFY");
-    if (opt.isEmpty() || !opt.get().getToken().equals(code)) {
+    if (opt.isEmpty()) {
+      throw new IllegalArgumentException("Invalid verification code");
+    }
+    var vt = opt.get();
+    if (vt.getExpiresAt() != null && vt.getExpiresAt().isBefore(Instant.now())) {
+      // cleanup expired token
+      verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
+      throw new IllegalArgumentException("Verification code expired");
+    }
+    if (!vt.getToken().equals(code)) {
       throw new IllegalArgumentException("Invalid verification code");
     }
     userRepository
@@ -154,7 +163,15 @@ public class AuthService {
   @Transactional
   public void performPasswordReset(String email, String token, String newPassword) {
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "RESET");
-    if (opt.isEmpty() || !opt.get().getToken().equals(token)) {
+    if (opt.isEmpty()) {
+      throw new IllegalArgumentException("Invalid password reset token");
+    }
+    var vt = opt.get();
+    if (vt.getExpiresAt() != null && vt.getExpiresAt().isBefore(Instant.now())) {
+      verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "RESET");
+      throw new IllegalArgumentException("Password reset token expired");
+    }
+    if (!vt.getToken().equals(token)) {
       throw new IllegalArgumentException("Invalid password reset token");
     }
     userRepository

@@ -1,5 +1,7 @@
 Repository conventions (for Copilot / contributors)
 
+We follow the same development pattern for all services in this repository: use the established conventions for Liquibase changelogs, DTOs, error handling, OpenAPI annotations, testing, and CI; new services should mirror the structure and practices already present in `user-service` and `store-service`.
+
 Liquibase changelogs
 - Use the SQL-based changelog format used in existing files (e.g. `01-create-core-tables.sql`).
 - Each SQL changelog must start with:
