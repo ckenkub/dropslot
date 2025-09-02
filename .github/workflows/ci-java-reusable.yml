@@ -1,0 +1,120 @@
+name: "CI - Java (reusable)"
+
+on:
+  workflow_call:
+    inputs:
+      module_path:
+        description: 'Path to the Maven module to build (relative to repo root)'
+        required: true
+        type: string
+      run_integration_tests:
+        description: 'Whether to run integration tests in this run'
+        required: false
+        type: boolean
+        default: false
+      run_e2e:
+        description: 'Whether to run end-to-end smoke tests (docker-compose based)'
+        required: false
+        type: boolean
+        default: false
+      jdk-version:
+        description: 'JDK version to use'
+        required: false
+        type: string
+        default: '21'
+
+jobs:
+  spotless:
+    name: Spotless / format check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.jdk-version }}
+
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Run Spotless check
+        run: mvn -f "${{ inputs.module_path }}" spotless:check
+
+  build:
+    name: Build and tests
+    needs: spotless
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.jdk-version }}
+
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Run unit tests (skip integration tests)
+        run: mvn -f "${{ inputs.module_path }}" -DskipITs=true test -Dspotless.skip=true
+
+      - name: Run integration tests (optional)
+        if: ${{ inputs.run_integration_tests == 'true' }}
+        run: mvn -f "${{ inputs.module_path }}" -DskipITs=false test -Dspotless.skip=true
+
+  e2e-smoke:
+    name: End-to-end smoke tests (docker-compose)
+    needs: build
+    if: ${{ inputs.run_e2e == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start services with docker compose
+        run: |
+          # bring up services defined in backend/docker-compose.yml
+          docker compose -f backend/docker-compose.yml up -d
+
+      - name: Wait for services
+        run: |
+          chmod +x backend/scripts/ci-wait-for.sh || true
+          backend/scripts/ci-wait-for.sh
+
+      - name: Run e2e smoke script
+        run: |
+          chmod +x backend/scripts/e2e-smoke.sh || true
+          backend/scripts/e2e-smoke.sh
+
+      - name: Collect docker-compose logs
+        run: docker compose -f backend/docker-compose.yml logs --no-color > e2e-logs.txt || true
+
+      - name: Upload e2e logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: e2e-logs.txt
+
+      - name: Tear down services
+        if: always()
+        run: docker compose -f backend/docker-compose.yml down --volumes --remove-orphans || true

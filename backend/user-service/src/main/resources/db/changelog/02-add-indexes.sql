@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset user:02
+--changeset ckenkub:02
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 

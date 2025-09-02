@@ -8,7 +8,7 @@
 - [ ] Email verification and password reset endpoints (scaffold)
 - [x] DTOs migrated to Java records
 - [x] Liquibase: add rollbacks to all changesets
-- [ ] Tests: unit (services), integration (auth flow) with Testcontainers
+ - [x] Tests: unit (services), integration (auth flow) with Testcontainers
 - [ ] OpenAPI via springdoc (basic info, grouped endpoints)
 
 ## Store service (stores & branches)
