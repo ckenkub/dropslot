@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'backend/store-service/**'
+  workflow_dispatch:
 
 jobs:
   call-reusable:
@@ -21,6 +22,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Diagnostics: print token presence
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "GHCR_TOKEN set: ${GHCR_TOKEN:+yes:no}"
+          echo "GITHUB_TOKEN set: ${GITHUB_TOKEN:+yes:no}"
 
       - name: Set up JDK
         uses: actions/setup-java@v4

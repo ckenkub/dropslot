@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -12,6 +13,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Diagnostics: reveal token presence (masked)
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "GHCR_TOKEN set: ${GHCR_TOKEN:+yes:no}"
+          echo "GITHUB_TOKEN set: ${GITHUB_TOKEN:+yes:no}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repository owner: ${{ github.repository_owner }}"
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -31,25 +42,41 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
+          set -x
           TAG=${GITHUB_REF#refs/tags/}
           IMAGE=ghcr.io/${{ github.repository_owner }}/user-service:${TAG}
-          mvn -B -f backend/user-service -DskipTests -Dspotless.skip=true \
+          mvn -X -e -B -f backend/user-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \
             -Djib.to.auth.username=${{ github.actor }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
-            jib:build
+            jib:build || (
+              echo "jib build failed, retrying with GITHUB_TOKEN fallback"
+              mvn -X -e -B -f backend/user-service -DskipTests -Dspotless.skip=true \
+                -Djib.to.image=${IMAGE} \
+                -Djib.to.auth.username=${{ github.actor }} \
+                -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }} \
+                jib:build
+            )
 
       - name: Build & push store-service image to GHCR
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run: |
+          set -x
           TAG=${GITHUB_REF#refs/tags/}
           IMAGE=ghcr.io/${{ github.repository_owner }}/store-service:${TAG}
-          mvn -B -f backend/store-service -DskipTests -Dspotless.skip=true \
+          mvn -X -e -B -f backend/store-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \
             -Djib.to.auth.username=${{ github.actor }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
-            jib:build
+            jib:build || (
+              echo "jib build failed, retrying with GITHUB_TOKEN fallback"
+              mvn -X -e -B -f backend/store-service -DskipTests -Dspotless.skip=true \
+                -Djib.to.image=${IMAGE} \
+                -Djib.to.auth.username=${{ github.actor }} \
+                -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }} \
+                jib:build
+            )
 
       - name: Upload image digests
         run: |
