@@ -1,0 +1,16 @@
+name: CI - e2e smoke (main)
+
+on:
+  push:
+    branches: [ 'main' ]
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  run-e2e:
+    uses: ./.github/workflows/ci-java-reusable.yml
+    with:
+      module_path: 'backend/user-service'
+      run_e2e: true
+      jdk-version: '21'
