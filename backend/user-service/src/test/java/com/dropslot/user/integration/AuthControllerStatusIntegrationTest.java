@@ -32,7 +32,7 @@ public class AuthControllerStatusIntegrationTest extends AbstractPostgresIntegra
 
     // register
     var reg = new AuthDtos.RegisterRequest(email, "pass1234", "Pending User");
-    ResponseEntity<?> r = rest.postForEntity("/auth/register", reg, Object.class);
+    ResponseEntity<String> r = rest.postForEntity("/auth/register", reg, String.class);
     assertThat(r.getStatusCode().is2xxSuccessful()).isTrue();
 
     // verify user stored as PENDING (await until visible)
@@ -46,7 +46,7 @@ public class AuthControllerStatusIntegrationTest extends AbstractPostgresIntegra
 
     // attempt login before verification -> should not be successful
     var login = new AuthDtos.LoginRequest(email, "pass1234");
-    ResponseEntity<?> loginResp = rest.postForEntity("/auth/login", login, Object.class);
+    ResponseEntity<String> loginResp = rest.postForEntity("/auth/login", login, String.class);
     assertThat(loginResp.getStatusCode().is2xxSuccessful()).isFalse();
   }
 }
