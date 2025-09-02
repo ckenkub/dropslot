@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.dropslot.user.util.LogUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +36,14 @@ public class UserController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<UserProfileDto> me(Authentication authentication) {
     UUID userId = UUID.fromString(authentication.getName());
-  log.debug("Get profile for userId={}", userId);
-  User user = userRepository.findById(userId).orElseThrow();
-  return ResponseEntity.ok(authService.toProfile(user));
+  LogUtils.putUserContext(userId.toString());
+  try {
+    log.debug("Get profile for userId={}", userId);
+    User user = userRepository.findById(userId).orElseThrow();
+    return ResponseEntity.ok(authService.toProfile(user));
+  } finally {
+    LogUtils.removeUserContext();
+  }
   }
 
   @PutMapping("/me")
@@ -55,10 +61,15 @@ public class UserController {
   public ResponseEntity<UserProfileDto> updateMe(
       Authentication authentication, @RequestBody UserProfileDto body) {
     UUID userId = UUID.fromString(authentication.getName());
-  log.info("Update profile for userId={}", userId);
-  User user = userRepository.findById(userId).orElseThrow();
-  if (body.name() != null) user.setName(body.name());
-  userRepository.save(user);
-  return ResponseEntity.ok(authService.toProfile(user));
+  LogUtils.putUserContext(userId.toString());
+  try {
+    log.info("Update profile for userId={}", userId);
+    User user = userRepository.findById(userId).orElseThrow();
+    if (body.name() != null) user.setName(body.name());
+    userRepository.save(user);
+    return ResponseEntity.ok(authService.toProfile(user));
+  } finally {
+    LogUtils.removeUserContext();
+  }
   }
 }

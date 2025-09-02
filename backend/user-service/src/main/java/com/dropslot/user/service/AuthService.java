@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.dropslot.user.util.LogUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -60,7 +61,9 @@ public class AuthService {
             .build();
     user.getRoles().add(customerRole);
     userRepository.save(user);
-  log.debug("User persisted id={}", user.getId());
+  log.info("User registered id={} email={}", user.getId(), user.getEmail());
+  // avoid logging raw email at INFO level; mask it instead
+  log.info("User registered id={} email={}", user.getId(), LogUtils.maskEmail(user.getEmail()));
   return toProfile(user);
   }
 
@@ -94,9 +97,16 @@ public class AuthService {
             .revoked(false)
             .build();
     refreshTokenRepository.save(tokenEntity);
-  log.debug("Refresh token persisted jti={}", jti);
-  return new AuthDtos.TokenResponse(
-    accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
+          refreshTokenRepository.save(tokenEntity);
+          LogUtils.putUserContext(user.getId().toString());
+          try {
+            log.info("Login successful userId={} jti={}", user.getId(), jti);
+            return new AuthDtos.TokenResponse(
+                accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
+          } finally {
+            LogUtils.removeUserContext();
+          }
+    
   }
 
   public UserProfileDto toProfile(User user) {
@@ -110,7 +120,8 @@ public class AuthService {
   // --- Email verification & password reset (scaffold) ---
   @Transactional
   public void sendVerificationEmail(String email) {
-    String token = UUID.randomUUID().toString().substring(0, 8);
+  log.info("Send verification email requested for email={}", email);
+  String token = UUID.randomUUID().toString().substring(0, 8);
     VerificationToken vt =
         VerificationToken.builder()
             .id(UUID.randomUUID())
@@ -122,13 +133,16 @@ public class AuthService {
             .build();
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
     verificationTokenRepository.save(vt);
-    mailer.send(email, "Verify your account", "Your verification code: " + token);
+  mailer.send(email, "Verify your account", "Your verification code: " + token);
+  log.info("Verification token created and emailed to={}", email);
   }
 
   @Transactional
   public void verifyEmail(String email, String code) {
+    log.info("Verify email attempt for email={}", email);
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "VERIFY");
     if (opt.isEmpty()) {
+      log.info("Verification failed (no token) for email={}", email);
       throw new IllegalArgumentException("Invalid verification code");
     }
     var vt = opt.get();
@@ -138,6 +152,7 @@ public class AuthService {
       throw new IllegalArgumentException("Verification code expired");
     }
     if (!vt.getToken().equals(code)) {
+      log.info("Verification failed (invalid code) for email={}", email);
       throw new IllegalArgumentException("Invalid verification code");
     }
     userRepository
@@ -147,12 +162,14 @@ public class AuthService {
               u.setStatus("ACTIVE");
               userRepository.save(u);
             });
-    verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
+  verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "VERIFY");
+  log.info("Email verified and account activated for email={}", email);
   }
 
   @Transactional
   public void requestPasswordReset(String email) {
-    String token = UUID.randomUUID().toString().substring(0, 8);
+  log.info("Password reset requested for email={}", email);
+  String token = UUID.randomUUID().toString().substring(0, 8);
     VerificationToken vt =
         VerificationToken.builder()
             .id(UUID.randomUUID())
@@ -164,13 +181,16 @@ public class AuthService {
             .build();
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "RESET");
     verificationTokenRepository.save(vt);
-    mailer.send(email, "Password reset", "Your password reset token: " + token);
+  mailer.send(email, "Password reset", "Your password reset token: " + token);
+  log.info("Password reset token created and emailed to={}", email);
   }
 
   @Transactional
   public void performPasswordReset(String email, String token, String newPassword) {
+    log.info("Perform password reset attempt for email={}", email);
     var opt = verificationTokenRepository.findByEmailAndType(email.toLowerCase(), "RESET");
     if (opt.isEmpty()) {
+      log.info("Password reset failed (no token) for email={}", email);
       throw new IllegalArgumentException("Invalid password reset token");
     }
     var vt = opt.get();
@@ -179,6 +199,7 @@ public class AuthService {
       throw new IllegalArgumentException("Password reset token expired");
     }
     if (!vt.getToken().equals(token)) {
+      log.info("Password reset failed (invalid token) for email={}", email);
       throw new IllegalArgumentException("Invalid password reset token");
     }
     userRepository
@@ -189,12 +210,14 @@ public class AuthService {
               userRepository.save(u);
             });
     verificationTokenRepository.deleteByEmailAndType(email.toLowerCase(), "RESET");
+  log.info("Password has been reset for email={}", email);
   }
 
   @Transactional
   public AuthDtos.TokenResponse refreshAccessToken(String refreshToken) {
     if (!jwtService.isTokenValid(refreshToken)) {
-      throw new IllegalArgumentException("Invalid refresh token");
+  log.info("Refresh token invalid or malformed");
+  throw new IllegalArgumentException("Invalid refresh token");
     }
     String jti = jwtService.extractJti(refreshToken);
     if (jti == null) throw new IllegalArgumentException("Invalid refresh token (missing jti)");
@@ -205,6 +228,7 @@ public class AuthService {
             .orElseThrow(
                 () -> new IllegalArgumentException("Refresh token not found or already used"));
     if (stored.isRevoked() || stored.getExpiresAt().isBefore(Instant.now())) {
+      log.info("Refresh token revoked/expired jti={}", jti);
       throw new IllegalArgumentException("Refresh token expired or revoked");
     }
 
@@ -222,7 +246,7 @@ public class AuthService {
     // update old token
     stored.setRevoked(true);
     stored.setReplacedByJti(newJti);
-    refreshTokenRepository.save(stored);
+  refreshTokenRepository.save(stored);
 
     // persist new token
     RefreshToken newEntity =
@@ -234,9 +258,9 @@ public class AuthService {
             .expiresAt(Instant.now().plusSeconds(jwtService.getRefreshTtlSeconds()))
             .revoked(false)
             .build();
-    refreshTokenRepository.save(newEntity);
-
-    return new AuthDtos.TokenResponse(
-        accessToken, newRefresh, "Bearer", jwtService.getTtlSeconds());
+  refreshTokenRepository.save(newEntity);
+  log.info("Refresh token rotated for userId={} newJti={}", user.getId(), newJti);
+  return new AuthDtos.TokenResponse(
+    accessToken, newRefresh, "Bearer", jwtService.getTtlSeconds());
   }
 }
