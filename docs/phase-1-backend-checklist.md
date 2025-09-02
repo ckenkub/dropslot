@@ -37,8 +37,8 @@
 
 ## PR / workflow
 - [x] Create feature branch for cross-cutting changes (logging/formatting)
-- [ ] Open PR with description, checklist, and link to design/docs
-- [ ] Ensure CI runs `spotless:check` and blocks merges on formatting failures
+- [x] Open PR with description, checklist, and link to design/docs
+- [x] Ensure CI runs `spotless:check` (reusable CI template includes spotless) — enforce branch protection separately
 
 ## Notes
 - Store DB: localhost:5434 (docker-compose), app port 8082
