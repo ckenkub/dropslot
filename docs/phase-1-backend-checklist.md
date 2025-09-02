@@ -5,11 +5,11 @@
 - [x] Implement JwtService (issue/validate tokens, TTL from config)
 - [x] Add JWT filter and security chain (permit /auth/*, secure others)
 - [x] Controllers: register, login, refresh, users/me, update profile
-- [ ] Email verification and password reset endpoints (scaffold)
+- [x] Email verification and password reset endpoints (implemented)
 - [x] DTOs migrated to Java records
 - [x] Liquibase: add rollbacks to all changesets
- - [x] Tests: unit (services), integration (auth flow) with Testcontainers
-- [ ] OpenAPI via springdoc (basic info, grouped endpoints)
+- [x] Tests: unit (services), integration (auth flow) with Testcontainers
+- [x] OpenAPI via springdoc (basic info, grouped endpoints)
 
 ## Store service (stores & branches)
 - [x] Entities, repositories, service, controller (create/get/update store, add branch)
@@ -29,7 +29,7 @@
 
 ## Quality and housekeeping
 - [x] Liquibase rollbacks present for all existing SQL
-- [ ] Consistent error responses (Problem JSON)
+- [x] Consistent error responses (Problem JSON)
 - [ ] Minimal logging and formatting rules
 - [ ] Update docs and README with run instructions
 

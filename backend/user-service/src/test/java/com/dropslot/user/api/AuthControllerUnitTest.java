@@ -69,7 +69,7 @@ public class AuthControllerUnitTest {
     String payload = "{\"email\":\"bad@example.com\"}";
 
     mvc.perform(post("/auth/verify/send").contentType(MediaType.APPLICATION_JSON).content(payload))
-        .andExpect(status().is5xxServerError());
+        .andExpect(status().is4xxClientError());
   }
 
   @Test
@@ -92,6 +92,6 @@ public class AuthControllerUnitTest {
 
     mvc.perform(
             post("/auth/password/reset").contentType(MediaType.APPLICATION_JSON).content(payload))
-        .andExpect(status().is5xxServerError());
+        .andExpect(status().is4xxClientError());
   }
 }
