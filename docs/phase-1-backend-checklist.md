@@ -30,8 +30,15 @@
 ## Quality and housekeeping
 - [x] Liquibase rollbacks present for all existing SQL
 - [x] Consistent error responses (Problem JSON)
-- [ ] Minimal logging and formatting rules
+- [x] Minimal logging and formatting rules (Spotless, EditorConfig)
+- [x] Logging policy: structured JSON, MDC fields, PII/masking documented (`docs/formatting-and-logging.md`)
+- [x] Spotless: repository enforces formatting; developers must run `mvn -f backend spotless:apply` before commit
 - [ ] Update docs and README with run instructions
+
+## PR / workflow
+- [x] Create feature branch for cross-cutting changes (logging/formatting)
+- [ ] Open PR with description, checklist, and link to design/docs
+- [ ] Ensure CI runs `spotless:check` and blocks merges on formatting failures
 
 ## Notes
 - Store DB: localhost:5434 (docker-compose), app port 8082
