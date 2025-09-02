@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**,/api/auth/**
+          filters:
+            - StripPrefix=1
+        - id: store-service
+          uri: lb://store-service
+          predicates:
+            - Path=/api/stores/**
+          filters:
+            - StripPrefix=1
+    discovery:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

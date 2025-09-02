@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: optional:classpath:common-docker.yml
+    activate:
+      on-profile: docker
+
+# Enable Eureka discovery when running in Docker
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/

@@ -7,54 +7,21 @@
     <version>0.1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>store-service</artifactId>
-  <name>store-service</name>
+  <artifactId>discovery-service</artifactId>
+  <name>discovery-service</name>
 
   <dependencies>
-    <dependency>
-      <groupId>com.dropslot</groupId>
-      <artifactId>config</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+      <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.liquibase</groupId>
-      <artifactId>liquibase-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>2.5.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -70,14 +37,14 @@
         <configuration>
           <from><image>eclipse-temurin:21-jre-alpine</image></from>
           <to>
-            <image>dropslot/store-service</image>
+            <image>dropslot/discovery-service</image>
             <tags>
               <tag>latest</tag>
               <tag>${project.version}</tag>
             </tags>
           </to>
           <container>
-            <ports><port>8082</port></ports>
+            <ports><port>8761</port></ports>
           </container>
         </configuration>
       </plugin>

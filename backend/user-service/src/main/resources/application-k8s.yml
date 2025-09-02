@@ -1,0 +1,6 @@
+spring:
+  config:
+    import: optional:classpath:common-k8s.yml
+    activate:
+      on-profile: k8s
+

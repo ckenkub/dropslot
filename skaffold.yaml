@@ -1,0 +1,79 @@
+apiVersion: skaffold/v4beta10
+kind: Config
+metadata:
+  name: dropslot
+build:
+  artifacts:
+  - image: dropslot/discovery-service
+    context: backend/discovery-service
+    jib:
+      args:
+      - -DskipTests
+  - image: dropslot/api-gateway
+    context: backend/api-gateway
+    jib:
+      args:
+      - -DskipTests
+  - image: dropslot/user-service
+    context: backend/user-service
+    jib:
+      args:
+      - -DskipTests
+  - image: dropslot/store-service
+    context: backend/store-service
+    jib:
+      args:
+      - -DskipTests
+manifests:
+  rawYaml:
+  - k8s/discovery-service.yaml
+  - k8s/api-gateway.yaml
+  - k8s/postgres-user-secret.yaml
+  - k8s/postgres-store-secret.yaml
+  - k8s/postgres-user.yaml
+  - k8s/postgres-store.yaml
+  - k8s/user-service.yaml
+  - k8s/store-service.yaml
+deploy:
+  kubectl: {}
+portForward:
+- resourceType: service
+  resourceName: api-gateway
+  port: 80
+  localPort: 8080
+- resourceType: service
+  resourceName: discovery-service
+  port: 8761
+  localPort: 8761
+- resourceType: service
+  resourceName: user-service
+  port: 8081
+  localPort: 8081
+- resourceType: service
+  resourceName: store-service
+  port: 8082
+  localPort: 8082
+
+profiles:
+- name: local
+  build:
+    local:
+      useDockerCLI: true
+      push: false
+    artifacts:
+    - image: dropslot/discovery-service
+      context: backend/discovery-service
+      docker:
+        dockerfile: Dockerfile
+    - image: dropslot/api-gateway
+      context: backend/api-gateway
+      docker:
+        dockerfile: Dockerfile
+    - image: dropslot/user-service
+      context: backend/user-service
+      docker:
+        dockerfile: Dockerfile
+    - image: dropslot/store-service
+      context: backend/store-service
+      docker:
+        dockerfile: Dockerfile

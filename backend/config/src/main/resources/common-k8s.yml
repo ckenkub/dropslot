@@ -1,0 +1,24 @@
+# Shared k8s profile config for all backend services
+spring:
+  datasource:
+    # service-specific DB names should be provided as override in each service
+    url: ${COMMON_DB_URL:jdbc:postgresql://postgres-service:5432/placeholder}
+    username: ${COMMON_DB_USER:placeholder}
+    password: ${COMMON_DB_PASS:placeholder}
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
+
+# Actuator / management defaults for k8s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

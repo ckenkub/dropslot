@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: optional:classpath:common-k8s.yml
+    activate:
+      on-profile: k8s
+
+# Enable Eureka discovery when running in k8s
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-service:8761/eureka/
