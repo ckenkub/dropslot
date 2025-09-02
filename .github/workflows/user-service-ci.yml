@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'backend/user-service/**'
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   call-reusable:
@@ -15,7 +15,7 @@ jobs:
       jdk-version: '21'
 
   jib-build:
-    name: Optional: Build container image with Jib
+    name: "Optional: Build container image with Jib"
     runs-on: ubuntu-latest
     needs: call-reusable
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
@@ -23,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Diagnostics: print token presence
+      - name: "Diagnostics: print token presence"
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
