@@ -6,6 +6,10 @@ on:
       - 'v*'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish:
     name: Build and push images to GHCR
@@ -23,6 +27,13 @@ jobs:
           echo "GITHUB_TOKEN set: ${GITHUB_TOKEN:+yes:no}"
           echo "Actor: ${{ github.actor }}"
           echo "Repository owner: ${{ github.repository_owner }}"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -64,7 +75,7 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository_owner }}/user-service:${TAG}
           mvn -X -e -B -f backend/user-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \
-            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.username=${{ secrets.GHCR_USERNAME }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
             clean package jib:build || (
               echo "jib build failed, retrying with GITHUB_TOKEN fallback"
@@ -96,7 +107,7 @@ jobs:
           IMAGE=ghcr.io/${{ github.repository_owner }}/store-service:${TAG}
           mvn -X -e -B -f backend/store-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \
-            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.username=${{ secrets.GHCR_USERNAME }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
             clean package jib:build || (
               echo "jib build failed, retrying with GITHUB_TOKEN fallback"
