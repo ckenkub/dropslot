@@ -24,6 +24,17 @@ services:
     volumes:
       - store_data:/var/lib/postgresql/data
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.0.0
+    container_name: ds-logstash
+    environment:
+      - LS_JAVA_OPTS=-Xmx256m -Xms256m
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    restart: unless-stopped
+
 volumes:
   user_data: {}
   store_data: {}

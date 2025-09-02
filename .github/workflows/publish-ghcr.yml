@@ -1,0 +1,62 @@
+name: Publish images to GHCR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    name: Build and push images to GHCR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Maven local repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build & push user-service image to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/user-service:${TAG}
+          mvn -B -f backend/user-service -DskipTests -Dspotless.skip=true \
+            -Djib.to.image=${IMAGE} \
+            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.password=${GHCR_TOKEN} \
+            jib:build
+
+      - name: Build & push store-service image to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          IMAGE=ghcr.io/${{ github.repository_owner }}/store-service:${TAG}
+          mvn -B -f backend/store-service -DskipTests -Dspotless.skip=true \
+            -Djib.to.image=${IMAGE} \
+            -Djib.to.auth.username=${{ github.actor }} \
+            -Djib.to.auth.password=${GHCR_TOKEN} \
+            jib:build
+
+      - name: Upload image digests
+        run: |
+          echo "Publishing completed for tag ${GITHUB_REF#refs/tags/}"
+
+  
+# Notes:
+# - This workflow expects a repository secret named GHCR_TOKEN with a PAT that has 'packages:write' scope
+#   (you can also use GITHUB_TOKEN in many orgs; if so, set GHCR_TOKEN to the value of GITHUB_TOKEN).
+# - It runs only on tag pushes (recommended). Do NOT expose GHCR_TOKEN to untrusted workflows or forks.

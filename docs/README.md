@@ -11,7 +11,7 @@ This directory contains all project documentation for the DropSlot e-commerce re
 - **[`dropslot-requirements.md`](dropslot-requirements.md)** - Original detailed requirements document
 
 ### 🔌 API Documentation
-- **[`api-specification.md`](api-specification.md)** - OpenAPI 3.0 specification for all REST endpoints
+- **[`apis/README.md`](apis/README.md)** - API specifications overview (per-service OpenAPI markdown)
 
 ### 🗄️ Database Design
 - **[`database-design.md`](database-design.md)** - Database schema with Mermaid ER diagram
@@ -39,7 +39,7 @@ This directory contains all project documentation for the DropSlot e-commerce re
 ## Development Workflow
 
 1. **📋 [Project Specification](spec.md)** - Start with project overview and requirements
-2. **🔌 [API Specification](api-specification.md)** - Review REST API contracts
+2. **🔌 [API Specifications](apis/README.md)** - Review REST API contracts (per service)
 3. **🗄️ [Database Design](database-design.md)** - Understand data architecture
 4. **📚 [Reference Guide](project-reference.md)** - Quick development reference
 5. **💻 Implementation** - Begin coding with approved specifications
@@ -52,7 +52,7 @@ dropslot/
 ├── 📁 docs/                        # All documentation
 │   ├── 📖 README.md               # Documentation index (this file)
 │   ├── 📋 spec.md                 # Project specification
-│   ├── 🔌 api-specification.md    # API documentation
+│   ├── 📁 apis/                   # API specification suite
 │   ├── 🗄️ database-design.md      # Database schema
 │   ├── 📚 documentation-timing-recommendation.md
 │   ├── 🎯 project-reference.md    # Quick reference guide
@@ -69,7 +69,7 @@ dropslot/
 |----------|-------------|---------|--------|
 | 📖 **[README.md](../README.md)** | Project overview | GitHub landing page | ✅ Complete |
 | 📋 **[spec.md](spec.md)** | Project specification | Requirements & features | ✅ Complete |
-| 🔌 **[api-specification.md](api-specification.md)** | API documentation | REST API contracts | ✅ Complete |
+| 🔌 **[apis/README.md](apis/README.md)** | API specifications | REST API contracts | ✅ Complete |
 | 🗄️ **[database-design.md](database-design.md)** | Database design | Schema & ER diagram | ✅ Complete |
 | 📚 **[documentation-timing-recommendation.md](documentation-timing-recommendation.md)** | Implementation strategy | Development guidance | ✅ Complete |
 | 🎯 **[project-reference.md](project-reference.md)** | Quick reference | Development reference | ✅ Complete |

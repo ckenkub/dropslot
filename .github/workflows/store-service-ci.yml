@@ -1,15 +1,15 @@
-name: CI - user-service
+name: CI - store-service
 
 on:
   pull_request:
     paths:
-      - 'backend/user-service/**'
+      - 'backend/store-service/**'
 
 jobs:
   call-reusable:
     uses: ./.github/workflows/ci-java-reusable.yml
     with:
-      module_path: 'backend/user-service'
+      module_path: 'backend/store-service'
       run_integration_tests: false
       jdk-version: '21'
 
@@ -37,5 +37,5 @@ jobs:
             ${{ runner.os }}-m2-
 
       - name: Build image with Jib (to local Docker daemon)
-        run: mvn -f backend/user-service -DskipTests -Dspotless.skip=true jib:dockerBuild
+        run: mvn -f backend/store-service -DskipTests -Dspotless.skip=true jib:dockerBuild
         # To push to a registry use jib:build and configure credentials via secrets

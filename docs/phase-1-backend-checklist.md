@@ -25,6 +25,9 @@
 - [x] Run both services locally (8081 user, 8082 store)
 - [x] Smoke test key endpoints (register/login/me, create store/branch)
 - [ ] Jib image build for both services (optional this phase)
+	- Note: Jib is configured in each module's pom. Use `mvn -f backend/<module> -DskipTests jib:dockerBuild` to build to the local Docker daemon
+	- [x] Local Jib build verified for `user-service` (image: `dropslot/user-service:latest`)
+	- [x] CI jobs added (optional `jib:dockerBuild` job in `user-service-ci.yml`, `store-service-ci.yml` created)
 - [x] Basic actuator health exposure verified
 
 ## Quality and housekeeping
@@ -34,6 +37,10 @@
 - [x] Logging policy: structured JSON, MDC fields, PII/masking documented (`docs/formatting-and-logging.md`)
 - [x] Spotless: repository enforces formatting; developers must run `mvn -f backend spotless:apply` before commit
 - [ ] Update docs and README with run instructions
+
+### Recent infra & logging updates
+- [x] Local Logstash test pipeline added (`backend/logstash/pipeline/logstash.conf`) and compose service (`logstash`) added to `backend/docker-compose.yml`.
+- [x] `logback-spring.xml` updated to support `LOGSTASH_DEST` and profile-based console fallback for `docker` profile.
 
 ## PR / workflow
 - [x] Create feature branch for cross-cutting changes (logging/formatting)

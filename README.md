@@ -85,7 +85,7 @@ dropslot/
 │   ├── 🎯 project-reference.md    # Quick reference guide
 │   ├── 📋 dropslot-requirements.md # Original requirements
 │   ├── 📚 documentation-timing-recommendation.md
-│   ├── 👁️ api-visualization-guide.md # Visualization guide
+│   ├── 👁️ api-visualization-setup.md # Visualization guide
 │   ├── ⚡ api-visualization-setup.md # Quick setup guide
 │   └── 🎨 frontend-setup-guide.md # Frontend setup guide
 ├── 📁 er/                          # Entity diagrams
@@ -112,7 +112,7 @@ dropslot/
 | 🎯 **Quick Reference** | Development reference guide | [docs/project-reference.md](docs/project-reference.md) |
 | 📋 **Original Requirements** | Source requirements document | [docs/dropslot-requirements.md](docs/dropslot-requirements.md) |
 | 📚 **Implementation Strategy** | Development timing recommendations | [docs/documentation-timing-recommendation.md](docs/documentation-timing-recommendation.md) |
-| 👁️ **API Visualization Guide** | How to visualize API specs | [docs/api-visualization-guide.md](docs/api-visualization-guide.md) |
+| 👁️ **API Visualization Guide** | How to visualize API specs | [docs/api-visualization-setup.md](docs/api-visualization-setup.md) |
 | ⚡ **API Visualization Setup** | Quick setup for API visualization | [docs/api-visualization-setup.md](docs/api-visualization-setup.md) |
 | 🎨 **Frontend Setup Guide** | Next.js project setup and architecture | [docs/frontend-setup-guide.md](docs/frontend-setup-guide.md) |
 
