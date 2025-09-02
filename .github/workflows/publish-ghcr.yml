@@ -41,9 +41,26 @@ jobs:
       - name: Build & push user-service image to GHCR
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REFNAME: ${{ github.ref_name }}
         run: |
           set -x
-          TAG=${GITHUB_REF#refs/tags/}
+          # Determine a safe TAG: strip refs/* prefixes and sanitize to a docker-friendly tag
+          # Handles: refs/heads/main -> main, refs/tags/v1.0 -> v1.0, and workflow_dispatch where GITHUB_REF may vary
+          REF="${GITHUB_REF:-}"
+          # prefer github.ref_name if present (short ref without prefixes)
+          if [[ -n "${REFNAME}" ]]; then
+            REF="${REFNAME}"
+          fi
+          # remove common prefixes if still present
+          REF=${REF#refs/heads/}
+          REF=${REF#refs/tags/}
+          REF=${REF#refs/}
+          # sanitize: replace non-alnum/._-/ with '-', collapse multiple -, lowercase
+          TAG=$(echo "${REF}" | sed -E 's#[^A-Za-z0-9._/-]+#-#g' | sed -E 's#-+#-#g' | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          # fallback if empty
+          if [[ -z "${TAG}" ]]; then
+            TAG=latest
+          fi
           IMAGE=ghcr.io/${{ github.repository_owner }}/user-service:${TAG}
           mvn -X -e -B -f backend/user-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \
@@ -61,9 +78,21 @@ jobs:
       - name: Build & push store-service image to GHCR
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          REFNAME: ${{ github.ref_name }}
         run: |
           set -x
-          TAG=${GITHUB_REF#refs/tags/}
+          # Determine a safe TAG: strip refs/* prefixes and sanitize to a docker-friendly tag
+          REF="${GITHUB_REF:-}"
+          if [[ -n "${REFNAME}" ]]; then
+            REF="${REFNAME}"
+          fi
+          REF=${REF#refs/heads/}
+          REF=${REF#refs/tags/}
+          REF=${REF#refs/}
+          TAG=$(echo "${REF}" | sed -E 's#[^A-Za-z0-9._/-]+#-#g' | sed -E 's#-+#-#g' | tr '/' '-' | tr '[:upper:]' '[:lower:]')
+          if [[ -z "${TAG}" ]]; then
+            TAG=latest
+          fi
           IMAGE=ghcr.io/${{ github.repository_owner }}/store-service:${TAG}
           mvn -X -e -B -f backend/store-service -DskipTests -Dspotless.skip=true \
             -Djib.to.image=${IMAGE} \

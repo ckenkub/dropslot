@@ -46,5 +46,5 @@ jobs:
             ${{ runner.os }}-m2-
 
       - name: Build image with Jib (to local Docker daemon)
-        run: mvn -f backend/store-service -DskipTests -Dspotless.skip=true jib:dockerBuild
+        run: mvn -f backend/store-service -DskipTests -Dspotless.skip=true clean package jib:dockerBuild
         # To push to a registry use jib:build and configure credentials via secrets
