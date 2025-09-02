@@ -49,13 +49,13 @@ jobs:
             -Djib.to.image=${IMAGE} \
             -Djib.to.auth.username=${{ github.actor }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
-            jib:build || (
+            clean package jib:build || (
               echo "jib build failed, retrying with GITHUB_TOKEN fallback"
               mvn -X -e -B -f backend/user-service -DskipTests -Dspotless.skip=true \
                 -Djib.to.image=${IMAGE} \
                 -Djib.to.auth.username=${{ github.actor }} \
                 -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }} \
-                jib:build
+                clean package jib:build
             )
 
       - name: Build & push store-service image to GHCR
@@ -69,13 +69,13 @@ jobs:
             -Djib.to.image=${IMAGE} \
             -Djib.to.auth.username=${{ github.actor }} \
             -Djib.to.auth.password=${GHCR_TOKEN} \
-            jib:build || (
+            clean package jib:build || (
               echo "jib build failed, retrying with GITHUB_TOKEN fallback"
               mvn -X -e -B -f backend/store-service -DskipTests -Dspotless.skip=true \
                 -Djib.to.image=${IMAGE} \
                 -Djib.to.auth.username=${{ github.actor }} \
                 -Djib.to.auth.password=${{ secrets.GITHUB_TOKEN }} \
-                jib:build
+                clean package jib:build
             )
 
       - name: Upload image digests
