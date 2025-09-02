@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Auth", description = "Authentication and account management")
 public class AuthController {
   private final AuthService authService;
+  private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
   @PostMapping("/register")
   @Operation(summary = "Register a new user")
@@ -28,7 +31,10 @@ public class AuthController {
       content =
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<?> register(@Valid @RequestBody AuthDtos.RegisterRequest request) {
-    return ResponseEntity.ok(authService.register(request));
+  log.info("Register request received for email={}", request.email());
+  var resp = authService.register(request);
+  log.info("User registered id={}", resp.id());
+  return ResponseEntity.ok(resp);
   }
 
   @PostMapping("/login")
@@ -40,7 +46,10 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<AuthDtos.TokenResponse> login(
       @Valid @RequestBody AuthDtos.LoginRequest request) {
-    return ResponseEntity.ok(authService.login(request));
+  log.info("Login attempt for email={}", request.email());
+  var tokens = authService.login(request);
+  log.info("Login success for email={}", request.email());
+  return ResponseEntity.ok(tokens);
   }
 
   @PostMapping("/refresh")
@@ -52,7 +61,10 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<AuthDtos.TokenResponse> refresh(
       @Valid @RequestBody AuthDtos.RefreshRequest request) {
-    return ResponseEntity.ok(authService.refreshAccessToken(request.refreshToken()));
+  log.info("Refresh token request received");
+  var tokens = authService.refreshAccessToken(request.refreshToken());
+  log.info("Refresh token rotated");
+  return ResponseEntity.ok(tokens);
   }
 
   @PostMapping("/verify/send")
@@ -64,8 +76,9 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<?> sendVerification(
       @Valid @RequestBody AuthVerifyDtos.SendVerifyEmailRequest request) {
-    authService.sendVerificationEmail(request.email());
-    return ResponseEntity.ok().build();
+  log.info("Send verification requested for email={}", request.email());
+  authService.sendVerificationEmail(request.email());
+  return ResponseEntity.ok().build();
   }
 
   @PostMapping("/verify")
@@ -77,8 +90,10 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<?> verifyEmail(
       @Valid @RequestBody AuthVerifyDtos.VerifyEmailRequest request) {
-    authService.verifyEmail(request.email(), request.code());
-    return ResponseEntity.ok().build();
+  log.info("Verify email requested for email={}", request.email());
+  authService.verifyEmail(request.email(), request.code());
+  log.info("Email verified for email={}", request.email());
+  return ResponseEntity.ok().build();
   }
 
   @PostMapping("/password/reset")
@@ -90,8 +105,9 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<?> requestPasswordReset(
       @Valid @RequestBody AuthVerifyDtos.PasswordResetRequest request) {
-    authService.requestPasswordReset(request.email());
-    return ResponseEntity.ok().build();
+  log.info("Password reset requested for email={}", request.email());
+  authService.requestPasswordReset(request.email());
+  return ResponseEntity.ok().build();
   }
 
   @PostMapping("/password/reset/perform")
@@ -103,7 +119,9 @@ public class AuthController {
           @Content(schema = @Schema(implementation = com.dropslot.user.api.dto.ProblemDto.class)))
   public ResponseEntity<?> performPasswordReset(
       @Valid @RequestBody AuthVerifyDtos.PerformPasswordResetRequest request) {
-    authService.performPasswordReset(request.email(), request.token(), request.newPassword());
-    return ResponseEntity.ok().build();
+  log.info("Perform password reset for email={}", request.email());
+  authService.performPasswordReset(request.email(), request.token(), request.newPassword());
+  log.info("Password reset performed for email={}", request.email());
+  return ResponseEntity.ok().build();
   }
 }

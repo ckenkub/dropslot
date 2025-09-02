@@ -21,10 +21,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
   private final PasswordEncoder passwordEncoder;
@@ -35,7 +38,9 @@ public class AuthService {
 
   @Transactional
   public UserProfileDto register(AuthDtos.RegisterRequest request) {
+    log.debug("Checking existing email for registration: {}", request.email());
     if (userRepository.existsByEmail(request.email())) {
+      log.info("Registration failed - email already registered: {}", request.email());
       throw new IllegalArgumentException("Email already registered");
     }
     Role customerRole =
@@ -55,15 +60,17 @@ public class AuthService {
             .build();
     user.getRoles().add(customerRole);
     userRepository.save(user);
-    return toProfile(user);
+  log.debug("User persisted id={}", user.getId());
+  return toProfile(user);
   }
 
   @Transactional
   public AuthDtos.TokenResponse login(AuthDtos.LoginRequest request) {
-    User user =
+  User user =
         userRepository
             .findByEmail(request.email())
             .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+  log.debug("Loaded user id={} for login", user.getId());
     if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
       throw new IllegalArgumentException("Invalid credentials");
     }
@@ -87,9 +94,9 @@ public class AuthService {
             .revoked(false)
             .build();
     refreshTokenRepository.save(tokenEntity);
-
-    return new AuthDtos.TokenResponse(
-        accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
+  log.debug("Refresh token persisted jti={}", jti);
+  return new AuthDtos.TokenResponse(
+    accessToken, refreshToken, "Bearer", jwtService.getTtlSeconds());
   }
 
   public UserProfileDto toProfile(User user) {
