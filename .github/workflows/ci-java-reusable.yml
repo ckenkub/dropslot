@@ -77,8 +77,8 @@ jobs:
       - name: Pre-install shared config module (if present)
         run: |
           if [ -f backend/config/pom.xml ]; then
-            echo "Installing backend/config to local Maven repo..."
-            mvn -f backend/config -DskipTests -Dspotless.skip=true clean install
+            echo "Installing parent POM and backend/config via aggregator..."
+            mvn -f backend/pom.xml -pl config -am -DskipTests -Dspotless.skip=true clean install
           else
             echo "No backend/config module found, skipping pre-install."
           fi
