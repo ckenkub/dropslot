@@ -13,9 +13,9 @@ jobs:
   call-reusable:
     uses: ./.github/workflows/ci-java-reusable.yml
     with:
-  module_path: 'backend/store-service'
-  run_integration_tests: true
-  jdk-version: '21'
+      module_path: 'backend/store-service'
+      run_integration_tests: true
+      jdk-version: '21'
 
   jib-build:
     name: "Optional: Build container image with Jib"
