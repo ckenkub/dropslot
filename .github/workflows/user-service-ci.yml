@@ -13,7 +13,7 @@ jobs:
     with:
       module_path: 'backend/user-service'
   run_integration_tests: true
-      jdk-version: '21'
+  jdk-version: '21'
 
   jib-build:
     name: "Optional: Build container image with Jib"
