@@ -74,6 +74,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
+      - name: Pre-install shared config module (if present)
+        run: |
+          if [ -f backend/config/pom.xml ]; then
+            echo "Installing backend/config to local Maven repo..."
+            mvn -f backend/config -DskipTests -Dspotless.skip=true clean install
+          else
+            echo "No backend/config module found, skipping pre-install."
+          fi
+
       - name: Run unit tests (skip integration tests)
         run: mvn -f "${{ inputs.module_path }}" -DskipITs=true test -Dspotless.skip=true
 

@@ -48,6 +48,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
+      - name: Pre-install shared config module (if present)
+        run: |
+          if [ -f backend/config/pom.xml ]; then
+            echo "Installing backend/config to local Maven repo..."
+            mvn -f backend/config -DskipTests -Dspotless.skip=true clean install
+          else
+            echo "No backend/config module found, skipping pre-install."
+          fi
+
       - name: Build image with Jib (to local Docker daemon)
         run: mvn -f backend/user-service -DskipTests -Dspotless.skip=true clean package jib:dockerBuild
         # To push to a registry use jib:build and configure credentials via secrets
