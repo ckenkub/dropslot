@@ -78,13 +78,13 @@ jobs:
         run: mvn -f "${{ inputs.module_path }}" -DskipITs=true test -Dspotless.skip=true
 
       - name: Run integration tests (optional)
-        if: ${{ inputs.run_integration_tests == 'true' }}
+        if: ${{ inputs.run_integration_tests == true }}
         run: mvn -f "${{ inputs.module_path }}" -DskipITs=false test -Dspotless.skip=true
 
   e2e-smoke:
     name: End-to-end smoke tests (docker-compose)
     needs: build
-    if: ${{ inputs.run_e2e == 'true' }}
+  if: ${{ inputs.run_e2e == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
