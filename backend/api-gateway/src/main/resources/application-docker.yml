@@ -1,0 +1,8 @@
+spring:
+  config:
+    import: optional:classpath:common-docker.yml
+    activate:
+      on-profile: docker
+
+# Enable Eureka discovery when running in Docker
+# Eureka removed for docker profile: use direct hostnames or compose network when needed

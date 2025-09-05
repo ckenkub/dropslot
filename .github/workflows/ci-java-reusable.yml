@@ -74,27 +74,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-m2-
 
+      - name: Pre-install shared config module (if present)
+        run: |
+          if [ -f backend/config/pom.xml ]; then
+            echo "Installing parent POM and backend/config via aggregator..."
+            mvn -f backend/pom.xml -pl config -am -DskipTests -Dspotless.skip=true clean install
+          else
+            echo "No backend/config module found, skipping pre-install."
+          fi
+
       - name: Run unit tests (skip integration tests)
         run: mvn -f "${{ inputs.module_path }}" -DskipITs=true test -Dspotless.skip=true
 
       - name: Run integration tests (optional)
-        if: ${{ inputs.run_integration_tests == 'true' }}
+        if: ${{ inputs.run_integration_tests == true }}
         run: mvn -f "${{ inputs.module_path }}" -DskipITs=false test -Dspotless.skip=true
 
   e2e-smoke:
     name: End-to-end smoke tests (docker-compose)
     needs: build
-    if: ${{ inputs.run_e2e == 'true' }}
+    if: ${{ inputs.run_e2e == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Start services with docker compose
+      - name: Start services with docker compose (e2e stack)
         run: |
-          # bring up services defined in backend/docker-compose.yml
-          docker compose -f backend/docker-compose.yml up -d
+          docker compose -f backend/compose.e2e.yml up -d --build
 
       - name: Wait for services
         run: |
@@ -107,7 +115,7 @@ jobs:
           backend/scripts/e2e-smoke.sh
 
       - name: Collect docker-compose logs
-        run: docker compose -f backend/docker-compose.yml logs --no-color > e2e-logs.txt || true
+        run: docker compose -f backend/compose.e2e.yml logs --no-color > e2e-logs.txt || true
 
       - name: Upload e2e logs
         uses: actions/upload-artifact@v4
@@ -117,4 +125,4 @@ jobs:
 
       - name: Tear down services
         if: always()
-        run: docker compose -f backend/docker-compose.yml down --volumes --remove-orphans || true
+        run: docker compose -f backend/compose.e2e.yml down --volumes --remove-orphans || true

@@ -1,0 +1,27 @@
+# Shared docker profile config for all backend services
+#
+# Defaults here are tailored for running the services on the host machine
+# during local development (i.e. using Docker containers for Postgres that
+# expose ports on localhost). When running the entire stack inside Docker
+# (services running in the same docker-compose network), override the
+# connection by setting the environment variable `COMMON_DB_URL` to use the
+# container hostnames (for example: jdbc:postgresql://postgres-user:5432/user_db).
+
+spring:
+  datasource:
+    # Prefer localhost by default for host-based local dev. Override by
+    # setting COMMON_DB_URL in the environment when needed (for example,
+    # when services run inside Docker and can resolve container hostnames).
+    url: ${COMMON_DB_URL:jdbc:postgresql://localhost:5432/placeholder}
+    username: ${COMMON_DB_USER:placeholder}
+    password: ${COMMON_DB_PASS:placeholder}
+# Actuator / management defaults for docker/dev
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+  # Gateway routes are provided at runtime via the cluster ConfigMap
+  # (k8s/api-gateway-configmap.yaml) to avoid rebuilding images for env changes.
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

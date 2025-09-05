@@ -1,54 +1,31 @@
 <configuration>
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
   <springProperty scope="context" name="SERVICE_NAME" source="spring.application.name" defaultValue="user-service"/>
-  <springProperty scope="context" name="LOGSTASH_DEST" source="LOGSTASH_DEST" defaultValue="localhost:5000"/>
 
-  <!-- Console appender for local/docker runs -->
+  <!-- Console appender that writes structured ECS JSON for container environments -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+    <encoder class="co.elastic.logging.logback.EcsEncoder">
+      <!-- EcsEncoder supports a serviceName and additionalFields for small custom fields -->
+      <serviceName>${SERVICE_NAME}</serviceName>
+      <additionalFields>{"ecs.version":"1.12.0"}</additionalFields>
     </encoder>
   </appender>
 
-  <!-- JSON Logstash appender only active when not running with the 'docker' profile -->
-  <springProfile name="!docker">
-    <appender name="JSON" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-      <destination>${LOGSTASH_DEST}</destination>
-      <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-        <providers>
-          <timestamp>
-            <fieldName>timestamp</fieldName>
-          </timestamp>
-          <logLevel>
-            <fieldName>level</fieldName>
-          </logLevel>
-          <loggerName>
-            <fieldName>logger</fieldName>
-          </loggerName>
-          <threadName>
-            <fieldName>thread</fieldName>
-          </threadName>
-          <message>
-            <fieldName>message</fieldName>
-          </message>
-          <stackTrace>
-            <fieldName>stack</fieldName>
-          </stackTrace>
-          <mdc>
-            <fieldName>mdc</fieldName>
-          </mdc>
-          <globalCustomFields>{"service":"${SERVICE_NAME}"}</globalCustomFields>
-        </providers>
-      </encoder>
-    </appender>
-
+  <!-- For non-docker/k8s profiles you can still use ECS encoder directly to stdout if desired -->
+  <springProfile name="!docker &amp;&amp; !k8s">
     <root level="INFO">
-      <appender-ref ref="JSON"/>
+      <appender-ref ref="CONSOLE"/>
     </root>
   </springProfile>
 
   <!-- When running with 'docker' profile (or locally), log to console to avoid external TCP connections -->
+  <!-- For docker and k8s profiles, log to console only -->
   <springProfile name="docker">
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+  <springProfile name="k8s">
     <root level="INFO">
       <appender-ref ref="CONSOLE"/>
     </root>

@@ -1,9 +1,12 @@
 name: CI - store-service
 
+# noop change: trigger CI re-run
+
 on:
   pull_request:
     paths:
-      - 'backend/store-service/**'
+    - 'backend/store-service/**'
+    - 'backend/api-gateway/**'
   workflow_dispatch: {}
 
 jobs:
@@ -11,7 +14,7 @@ jobs:
     uses: ./.github/workflows/ci-java-reusable.yml
     with:
       module_path: 'backend/store-service'
-      run_integration_tests: false
+      run_integration_tests: true
       jdk-version: '21'
 
   jib-build:
@@ -44,6 +47,15 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-m2-
+
+      - name: Pre-install shared config module (if present)
+        run: |
+          if [ -f backend/config/pom.xml ]; then
+            echo "Installing parent POM and backend/config via aggregator..."
+            mvn -f backend/pom.xml -pl config -am -DskipTests -Dspotless.skip=true clean install
+          else
+            echo "No backend/config module found, skipping pre-install."
+          fi
 
       - name: Build image with Jib (to local Docker daemon)
         run: mvn -f backend/store-service -DskipTests -Dspotless.skip=true clean package jib:dockerBuild

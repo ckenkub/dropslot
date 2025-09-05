@@ -1,0 +1,70 @@
+version: '3.9'
+services:
+  postgres-user:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d user_db" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  postgres-store:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: store_db
+      POSTGRES_USER: store
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U store -d store_db" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      COMMON_DB_URL: jdbc:postgresql://postgres-user:5432/user_db
+      COMMON_DB_USER: user
+      COMMON_DB_PASS: password
+      SECURITY_JWT_SECRET: e2e-test-secret
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+
+  store-service:
+    build:
+      context: ./store-service
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      COMMON_DB_URL: jdbc:postgresql://postgres-store:5432/store_db
+      COMMON_DB_USER: store
+      COMMON_DB_PASS: password
+    depends_on:
+      postgres-store:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      user-service:
+        condition: service_started
+      store-service:
+        condition: service_started
+    ports:
+      - "8080:8080"

@@ -1,0 +1,13 @@
+spring:
+  config:
+    import: optional:classpath:common-docker.yml
+    activate:
+      on-profile: docker
+
+security:
+  jwt:
+    # Dev-only fallback secret for local docker runs. Override via SECURITY_JWT_SECRET env var.
+    secret: ${SECURITY_JWT_SECRET:dGhpc2lzYXZlcnlsb25nYmFzZTY0c2VjcmV0c3RyaW5nZm9yZGV2ZWxvcG1lbnQ=}
+    ttlSeconds: ${SECURITY_JWT_TTL_SECONDS:3600}
+    refreshTtlSeconds: ${SECURITY_JWT_REFRESH_TTL_SECONDS:604800}
+

@@ -1,0 +1,14 @@
+spring:
+  config:
+    import: optional:classpath:common-k8s.yml
+    activate:
+      on-profile: k8s
+
+# Use Kubernetes DNS when running in k8s
+
+spring:
+  application:
+    name: api-gateway
+
+  # Gateway routes are provided at runtime via the cluster ConfigMap.
+  # Keep in-image config minimal to avoid duplication.

@@ -1,0 +1,6 @@
+spring:
+  config:
+    import: optional:classpath:common-docker.yml
+    activate:
+      on-profile: docker
+

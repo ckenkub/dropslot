@@ -20,6 +20,7 @@ Code, DB, and testing
 CI and smoke tests
 - Smoke tests scripts live in `backend/scripts` and should be idempotent and safe to run in CI.
 - Avoid external network dependencies in CI (e.g., real SMTP). Use logs or an in-memory/fake mailer for tests.
+- E2E in CI should use `backend/compose.e2e.yml` with `backend/scripts/ci-wait-for.sh` and `backend/scripts/e2e-smoke.sh`.
 
 Pull requests
 - Use feature branches and concise commit messages: `feat(...)`, `ci(...)`, `fix(...)`.
