@@ -6,11 +6,9 @@ spring:
     username: ${COMMON_DB_USER:placeholder}
     password: ${COMMON_DB_PASS:placeholder}
 
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://discovery-service:8761/eureka/
+# Eureka removed: using Kubernetes DNS/service discovery for services in k8s
+# (If you need an external discovery service in non-k8s environments, add
+# environment-specific configs back into application-{profile}.yml)
 
 # Actuator / management defaults for k8s
 management:

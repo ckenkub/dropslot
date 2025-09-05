@@ -22,7 +22,6 @@ skaffold dev
 
 Skaffold will:
 - Build images via Jib for:
-  - discovery-service (Eureka)
   - api-gateway (Spring Cloud Gateway)
   - user-service
   - store-service
@@ -31,7 +30,6 @@ Skaffold will:
 
 ## Endpoints
 - API Gateway: http://localhost:8080
-- Eureka: http://localhost:8761
 - User Service: http://localhost:8081
 - Store Service: http://localhost:8082
 

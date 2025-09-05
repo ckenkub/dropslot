@@ -23,6 +23,18 @@ spec:
       labels:
         app: user-service
     spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z postgres-user 5432; do
+            echo "waiting for postgres-user:5432";
+            sleep 2;
+          done
       containers:
       - name: user-service
         image: dropslot/user-service:latest

@@ -139,3 +139,12 @@ dropslot/
 [![View API Docs](https://img.shields.io/badge/API-OpenAPI%203.0-green)](api-specification.md)
 [![View Database Design](https://img.shields.io/badge/Database-Design-orange)](database-design.md)
 [![View Project Spec](https://img.shields.io/badge/Spec-Requirements-blue)](spec.md)
+
+## API Smoke Test Scripts
+
+For quick end-to-end checks during local development:
+
+- Direct services: backend/scripts/test-direct.sh
+- Via API Gateway: backend/scripts/test-gateway.sh
+
+These will register a test user, handle email verification automatically (by reading the verification code from user-service logs when using the in-memory mailer), login, call /users/me, and exercise basic Store APIs.

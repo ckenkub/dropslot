@@ -3,7 +3,8 @@ name: CI - store-service
 on:
   pull_request:
     paths:
-      - 'backend/store-service/**'
+    - 'backend/store-service/**'
+    - 'backend/api-gateway/**'
   workflow_dispatch: {}
 
 jobs:
@@ -11,7 +12,7 @@ jobs:
     uses: ./.github/workflows/ci-java-reusable.yml
     with:
       module_path: 'backend/store-service'
-      run_integration_tests: false
+  run_integration_tests: true
       jdk-version: '21'
 
   jib-build:

@@ -191,7 +191,7 @@ paths:
                 - password
       responses:
         '200':
-          description: Authentication successful
+          description: Authentication successful (only for ACTIVE users)
           content:
             application/json:
               schema:
@@ -209,7 +209,20 @@ paths:
                     type: integer
                     example: 3600
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          description: Invalid credentials or account not active (email not verified)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  status:
+                    type: integer
+                  detail:
+                    type: string
 ```
 
 #### Refresh Token
@@ -250,7 +263,7 @@ paths:
 
 #### Get Current User
 ```yaml
-  /me:
+  /users/me:
     get:
       summary: Get current user profile
       tags: [Users]

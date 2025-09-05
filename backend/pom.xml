@@ -11,8 +11,8 @@
   <modules>
     <module>user-service</module>
     <module>store-service</module>
-  <module>api-gateway</module>
-  <module>discovery-service</module>
+    <module>api-gateway</module>
+  <!-- discovery-service (Eureka) removed: k8s-native DNS used instead -->
   <module>config</module>
   </modules>
 

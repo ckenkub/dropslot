@@ -39,6 +39,4 @@ cors:
 
 server:
   port: 8081
-eureka:
-  client:
-    enabled: false
+

@@ -5,22 +5,8 @@ spring:
   application:
     name: api-gateway
   cloud:
-    gateway:
-      routes:
-        - id: user-service
-          uri: lb://user-service
-          predicates:
-            - Path=/api/users/**,/api/auth/**
-          filters:
-            - StripPrefix=1
-        - id: store-service
-          uri: lb://store-service
-          predicates:
-            - Path=/api/stores/**
-          filters:
-            - StripPrefix=1
-    discovery:
-      enabled: true
+  # Gateway routes are provided at runtime via the cluster ConfigMap
+  # (k8s/api-gateway-configmap.yaml) to avoid rebuilding images for env changes.
 
 management:
   endpoints:

@@ -4,8 +4,11 @@ spring:
     activate:
       on-profile: k8s
 
-# Enable Eureka discovery when running in k8s
-eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-service:8761/eureka/
+# Use Kubernetes DNS when running in k8s
+
+spring:
+  application:
+    name: api-gateway
+
+  # Gateway routes are provided at runtime via the cluster ConfigMap.
+  # Keep in-image config minimal to avoid duplication.

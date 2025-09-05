@@ -5,7 +5,4 @@ spring:
       on-profile: docker
 
 # Enable Eureka discovery when running in Docker
-eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-service:8761/eureka/
+# Eureka removed for docker profile: use direct hostnames or compose network when needed

@@ -7,7 +7,7 @@ set -euo pipefail
 #  ./scripts/dev-run.sh status  -> show service status and health endpoints
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-cd "$REPO_ROOT/backend"
+cd "$REPO_ROOT"
 
 start_postgres() {
   echo "Starting postgres containers via docker-compose..."

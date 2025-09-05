@@ -23,6 +23,18 @@ spec:
       labels:
         app: store-service
     spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z postgres-store 5432; do
+            echo "waiting for postgres-store:5432";
+            sleep 2;
+          done
       containers:
       - name: store-service
         image: dropslot/store-service:latest

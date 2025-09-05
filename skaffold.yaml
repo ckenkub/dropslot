@@ -4,11 +4,6 @@ metadata:
   name: dropslot
 build:
   artifacts:
-  - image: dropslot/discovery-service
-    context: backend/discovery-service
-    jib:
-      args:
-      - -DskipTests
   - image: dropslot/api-gateway
     context: backend/api-gateway
     jib:
@@ -26,10 +21,10 @@ build:
       - -DskipTests
 manifests:
   rawYaml:
-  - k8s/discovery-service.yaml
   - k8s/api-gateway.yaml
   - k8s/postgres-user-secret.yaml
   - k8s/postgres-store-secret.yaml
+  - k8s/jwt-secret.yaml
   - k8s/postgres-user.yaml
   - k8s/postgres-store.yaml
   - k8s/user-service.yaml
@@ -41,10 +36,6 @@ portForward:
   resourceName: api-gateway
   port: 80
   localPort: 8080
-- resourceType: service
-  resourceName: discovery-service
-  port: 8761
-  localPort: 8761
 - resourceType: service
   resourceName: user-service
   port: 8081
@@ -61,10 +52,6 @@ profiles:
       useDockerCLI: true
       push: false
     artifacts:
-    - image: dropslot/discovery-service
-      context: backend/discovery-service
-      docker:
-        dockerfile: Dockerfile
     - image: dropslot/api-gateway
       context: backend/api-gateway
       docker:

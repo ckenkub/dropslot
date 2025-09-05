@@ -15,13 +15,6 @@ spring:
     url: ${COMMON_DB_URL:jdbc:postgresql://localhost:5432/placeholder}
     username: ${COMMON_DB_USER:placeholder}
     password: ${COMMON_DB_PASS:placeholder}
-
-eureka:
-  client:
-    enabled: true
-    service-url:
-      defaultZone: http://discovery-service:8761/eureka/
-
 # Actuator / management defaults for docker/dev
 management:
   endpoints:

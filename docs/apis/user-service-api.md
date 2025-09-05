@@ -128,13 +128,26 @@ paths:
                 - password
       responses:
         '200':
-          description: Authentication successful
+          description: Authentication successful (only when account status is ACTIVE)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthenticationResponse'
         '401':
-          $ref: '#/components/responses/UnauthorizedError'
+          description: Invalid credentials or account not active (email not verified)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  status:
+                    type: integer
+                  detail:
+                    type: string
         '429':
           $ref: '#/components/responses/RateLimitError'
 ```
@@ -215,9 +228,31 @@ paths:
 
 #### Verify Email
 ```yaml
-  /auth/verify-email:
+  /auth/verify/send:
     post:
-      summary: Verify user email address
+      summary: Send email verification code
+      tags: [Authentication]
+      operationId: sendVerification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: User email address
+      responses:
+        '200':
+          description: Verification code sent
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/verify:
+    post:
+      summary: Verify user email address using a code
       tags: [Authentication]
       operationId: verifyEmail
       requestBody:
@@ -227,19 +262,25 @@ paths:
             schema:
               type: object
               properties:
-                token:
+                email:
                   type: string
-                  description: Email verification token
-                  example: abc123def456
+                  format: email
+                code:
+                  type: string
+                  description: Verification code
               required:
-                - token
+                - email
+                - code
       responses:
         '200':
           description: Email verified successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  message:
+                    type: string
         '400':
           $ref: '#/components/responses/ValidationError'
         '410':

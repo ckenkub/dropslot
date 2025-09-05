@@ -91,10 +91,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Start services with docker compose
+      - name: Start services with docker compose (e2e stack)
         run: |
-          # bring up services defined in backend/docker-compose.yml
-          docker compose -f backend/docker-compose.yml up -d
+          docker compose -f backend/compose.e2e.yml up -d --build
 
       - name: Wait for services
         run: |
@@ -107,7 +106,7 @@ jobs:
           backend/scripts/e2e-smoke.sh
 
       - name: Collect docker-compose logs
-        run: docker compose -f backend/docker-compose.yml logs --no-color > e2e-logs.txt || true
+        run: docker compose -f backend/compose.e2e.yml logs --no-color > e2e-logs.txt || true
 
       - name: Upload e2e logs
         uses: actions/upload-artifact@v4
@@ -117,4 +116,4 @@ jobs:
 
       - name: Tear down services
         if: always()
-        run: docker compose -f backend/docker-compose.yml down --volumes --remove-orphans || true
+        run: docker compose -f backend/compose.e2e.yml down --volumes --remove-orphans || true
