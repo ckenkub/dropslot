@@ -12,8 +12,8 @@ public class KafkaProducerService {
     }
 
     public void publishUserCreated(UserCreatedEvent event) {
-    String key = (event.getPayload() != null && event.getPayload().userId != null)
-        ? event.getPayload().userId : "";
-    kafkaTemplate.send("dropslot.users", key, event);
+        String key = (event.payload() != null && event.payload().userId() != null)
+            ? event.payload().userId() : "";
+        kafkaTemplate.send("dropslot.users", key, event);
     }
 }

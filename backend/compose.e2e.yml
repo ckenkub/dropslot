@@ -1,4 +1,3 @@
-version: '3.9'
 services:
   postgres-user:
     image: postgres:16-alpine
@@ -33,10 +32,15 @@ services:
       COMMON_DB_URL: jdbc:postgresql://postgres-user:5432/user_db
       COMMON_DB_USER: user
       COMMON_DB_PASS: password
-      SECURITY_JWT_SECRET: e2e-test-secret
+      SECURITY_JWT_SECRET: dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1kcm9wc2xvdC1lMmUtdGVzdGluZy1lbnZpcm9ubWVudC1qd3QtdG9rZW5z
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.springframework.kafka.support.serializer.JsonSerializer
+      SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER: org.springframework.kafka.support.serializer.JsonDeserializer
     depends_on:
       postgres-user:
         condition: service_healthy
+      kafka:
+        condition: service_started
     ports:
       - "8081:8081"
 
@@ -49,9 +53,15 @@ services:
       COMMON_DB_URL: jdbc:postgresql://postgres-store:5432/store_db
       COMMON_DB_USER: store
       COMMON_DB_PASS: password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.springframework.kafka.support.serializer.JsonSerializer
+      SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER: org.springframework.kafka.support.serializer.JsonDeserializer
+      SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES: "*"
     depends_on:
       postgres-store:
         condition: service_healthy
+      kafka:
+        condition: service_started
     ports:
       - "8082:8082"
 

@@ -2,24 +2,30 @@ package com.dropslot.user.kafka;
 
 import java.time.Instant;
 
-public class UserCreatedEvent {
-    private String eventType = "UserCreated";
-    private Instant occurredAt = Instant.now();
-    private String traceId;
-
-    private Payload payload;
-
-    public static class Payload {
-        public String userId;
-        public String email;
-        public Instant createdAt;
+/**
+ * Producer-side event record for UserCreated events.
+ * This is the complete event structure that gets published to Kafka.
+ */
+public record UserCreatedEvent(
+    String eventType,
+    Instant occurredAt,
+    String traceId,
+    Payload payload
+) {
+    
+    // Factory method for creating UserCreated events
+    public static UserCreatedEvent create(String userId, String email) {
+        return new UserCreatedEvent(
+            "UserCreated",
+            Instant.now(),
+            null, // traceId can be set later if needed
+            new Payload(userId, email, Instant.now())
+        );
     }
-
-    // getters/setters
-    public String getEventType() { return eventType; }
-    public Instant getOccurredAt() { return occurredAt; }
-    public String getTraceId() { return traceId; }
-    public void setTraceId(String traceId) { this.traceId = traceId; }
-    public Payload getPayload() { return payload; }
-    public void setPayload(Payload payload) { this.payload = payload; }
+    
+    public record Payload(
+        String userId,
+        String email,
+        Instant createdAt
+    ) {}
 }

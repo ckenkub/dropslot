@@ -13,6 +13,8 @@ import com.dropslot.user.repo.UserRepository;
 import com.dropslot.user.repo.VerificationTokenRepository;
 import com.dropslot.user.security.JwtService;
 import com.dropslot.user.util.LogUtils;
+import com.dropslot.user.kafka.KafkaProducerService;
+import com.dropslot.user.kafka.UserCreatedEvent;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +38,7 @@ public class AuthService {
   private final RefreshTokenRepository refreshTokenRepository;
   private final VerificationTokenRepository verificationTokenRepository;
   private final Mailer mailer;
+  private final KafkaProducerService kafkaProducerService;
 
   @Transactional
   public UserProfileDto register(AuthDtos.RegisterRequest request) {
@@ -63,6 +66,21 @@ public class AuthService {
     user.getRoles().add(customerRole);
     userRepository.save(user);
     log.info("User registered id={} email={}", user.getId(), LogUtils.maskEmail(user.getEmail()));
+    
+    // Publish user created event to Kafka
+    try {
+      UserCreatedEvent event = UserCreatedEvent.create(
+          user.getId().toString(),
+          user.getEmail()
+      );
+      
+      kafkaProducerService.publishUserCreated(event);
+      log.info("Published UserCreatedEvent for user id={}", user.getId());
+    } catch (Exception e) {
+      // Log but don't fail registration if Kafka is down
+      log.warn("Failed to publish UserCreatedEvent for user id={}: {}", user.getId(), e.getMessage());
+    }
+    
     return toProfile(user);
   }
 

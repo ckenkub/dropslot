@@ -12,6 +12,7 @@ import com.dropslot.user.repo.RefreshTokenRepository;
 import com.dropslot.user.repo.UserRepository;
 import com.dropslot.user.repo.VerificationTokenRepository;
 import com.dropslot.user.security.JwtService;
+import com.dropslot.user.kafka.KafkaProducerService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ class AuthServiceTest {
   private RefreshTokenRepository refreshTokenRepository;
   private VerificationTokenRepository verificationTokenRepository;
   private Mailer mailer;
+  private KafkaProducerService kafkaProducerService;
   private AuthService authService;
 
   @BeforeEach
@@ -41,6 +43,7 @@ class AuthServiceTest {
     refreshTokenRepository = mock(RefreshTokenRepository.class);
     verificationTokenRepository = mock(VerificationTokenRepository.class);
     mailer = mock(Mailer.class);
+    kafkaProducerService = mock(KafkaProducerService.class);
     authService =
         new AuthService(
             userRepository,
@@ -49,7 +52,8 @@ class AuthServiceTest {
             jwtService,
             refreshTokenRepository,
             verificationTokenRepository,
-            mailer);
+            mailer,
+            kafkaProducerService);
   }
 
   @Test
